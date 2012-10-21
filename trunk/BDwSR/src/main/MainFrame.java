@@ -48,16 +48,14 @@ public final class MainFrame extends JFrame {
 		JPanel leftPanel = new JPanel();
 		leftPanel.setLayout(new GridLayout(3, 1));
 		JPanel leftUpperPanel = new JPanel();
-		leftUpperPanel.setLayout(new GridLayout(5, 1));
+		leftUpperPanel.setLayout(new GridLayout(3, 1));
 		leftUpperPanel.add(new JLabel("Wybór koordynatora algorytmem tyrana."));
 		leftUpperPanel.add(new JLabel("Autorzy:"));
 		leftUpperPanel.add(new JLabel("Łukasz Krok, Tobiasz Siemiński."));
-		leftUpperPanel.add(new JLabel("Proszę wypełnić priorytety wątków"));
-		leftUpperPanel.add(new JLabel("dowolnymi liczbami całkowitymi."));
 		leftUpperPanel.setBorder(DEFAULT_BORDER);
 
 		JPanel leftCenterPanel = new JPanel();
-		leftCenterPanel.setLayout(new GridLayout(10, 2));
+		leftCenterPanel.setLayout(new GridLayout(8, 2));
 		final JTextField threadsNumber = new JTextField("16");
 	    final JTextField priorityMax = new JTextField("100");
 
@@ -70,11 +68,15 @@ public final class MainFrame extends JFrame {
 		final JTextField coordinatorNumber = new JTextField("1");
 		leftCenterPanel.add(coordinatorNumber);
 		
+		leftCenterPanel.add(new JLabel("Czas zwłoki w ms:"));
+		final JTextField delayTime = new JTextField("3000");
+		leftCenterPanel.add(delayTime);
+		
 		leftCenterPanel.setBorder(DEFAULT_BORDER);
 
 		
 		JPanel leftSouthPanel = new JPanel();
-		leftSouthPanel.setLayout(new GridLayout(4, 1));
+		leftSouthPanel.setLayout(new GridLayout(3, 1));
 
 		// ///////////////// START BUTTON /////////////
 		JButton startButton = new JButton("START");
@@ -82,6 +84,7 @@ public final class MainFrame extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+			    textArea.setText("");
 				textArea.append("Startujemy!\n");
 				StringBuilder builder = new StringBuilder();
 				builder.append("Liczba wątków: "+threadsNumber.getText()+". Max priorytet: "+priorityMax.getText());
@@ -89,7 +92,7 @@ public final class MainFrame extends JFrame {
 				int numberOfThreads = Integer.valueOf(threadsNumber.getText());
 				int maxPriority = Integer.valueOf(priorityMax.getText());
 				
-				controller.startThreads(numberOfThreads, maxPriority, Integer.valueOf(coordinatorNumber.getText()));
+				controller.startThreads(numberOfThreads, maxPriority, Integer.valueOf(coordinatorNumber.getText()), Integer.valueOf(delayTime.getText()));
 			}
 		});
 		leftSouthPanel.add(startButton);
@@ -105,17 +108,6 @@ public final class MainFrame extends JFrame {
 			}
 		});
 		leftSouthPanel.add(startAlgorithmButton);
-
-		// ///////////////// PAUSE BUTTON /////////////
-		JButton pauseButton = new JButton("PAUZA");
-		pauseButton.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				textArea.append("Pauza!\n");
-			}
-		});
-		leftSouthPanel.add(pauseButton);
 
 		// ///////////////// STOP BUTTON /////////////
 		JButton stopButton = new JButton("STOP");
