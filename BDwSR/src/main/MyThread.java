@@ -5,15 +5,16 @@ import java.util.Random;
 public class MyThread implements Runnable {
 
     private int        priority      = 0;
-    private int        number        = 0;
     private int        DELAY         = 3000;
+    private int        numberr        = 0;
     private boolean    isCoordinator = false;
     private boolean    isAlive       = true;
     private Controller controller;
 
-    public MyThread(int priority, int number) {
+    public MyThread(int priority, int number, int delay) {
         this.priority = priority;
-        this.number = number;
+        this.numberr = number;
+        this.DELAY = delay;
     }
 
     public void run() {
@@ -24,7 +25,7 @@ public class MyThread implements Runnable {
                     MainFrame
                             .getInstance()
                             .getTextArea()
-                            .append("Wątek " + number + " o priorytecie: " + priority + " zgłasza się!" + (isCoordinator() ? " JESTEM KOORDYNATOREM!" : "")
+                            .append("Wątek " + numberr + " o priorytecie: " + priority + " zgłasza się!" + (isCoordinator() ? " JESTEM KOORDYNATOREM!" : "")
                                     + "\n");
                 }
 
@@ -33,62 +34,63 @@ public class MyThread implements Runnable {
                     if (message == null) {
                         startElection();
                     } else {
-                        MainFrame.getInstance().getTextArea().append("Wątek " + number + " otrzymał informację od koordynatora: " + message);
+                        MainFrame.getInstance().getTextArea().append("Wątek " + numberr + " otrzymał informację od koordynatora: \"" + message + "\".\n");
                     }
                 }
                 Thread.sleep(DELAY);
             }
         } catch (Exception exception) {
-            System.out.println("EXCEPTION: ");
-            exception.printStackTrace();
+            System.out.println("Wątek: " + numberr + " został zabity.");
         }
     }
 
-    private void startElection() {
+    private synchronized void startElection() {
         if (!controller.isElectionStarted()) {
-            if (controller.getMyThreadsRunnableList().size() == 1) {
-                MainFrame.getInstance().getTextArea().append("Brak żywych wątków! Kończę działanie programu.\n");
+            if (controller.getMyThreadsRunnableList().size() <= 1) {
+                MainFrame.getInstance().getTextArea().append("!!! Brak żywych wątków! Kończę działanie programu.\n");
                 controller.stopThreads();
                 return;
             }
-            //TODO DODAC SYNCHRONIZED
             controller.setElectionStarted(true);
-            MainFrame.getInstance().getTextArea().append("=== Wątek " + number + " o priorytecie "+ getPriority() + " rozpoczyna proces elekcji spośród "+controller.getMyThreadsRunnableList().size()+" wątków!\n");
+            MainFrame
+                    .getInstance()
+                    .getTextArea()
+                    .append("=== Wątek " + numberr + " o priorytecie " + getPriority() + " rozpoczyna proces elekcji spośród "
+                            + controller.getMyThreadsRunnableList().size() + " wątków!\n");
 
             Random random = new Random();
-            
-            MyThread maxPriorityThread = null;
-            int maxPriority = 0;
-            
-            for (MyThread mt : controller.getMyThreadsRunnableList()) {
-                if (maxPriorityThread == null)
-                    maxPriorityThread = mt;
-                if (mt.getPriority() > maxPriorityThread.getPriority())
-                    maxPriorityThread = mt;
-            }
-            
-            //ZABIJ LOSOWY WĄTEK
+
+
+            //WYBIERZ WATEK O NAJWYZSZYM PRIORYTECIE
+            MyThread maxPriorityThread = controller.getMaxPriorityThread();
+
+            // ZABIJ LOSOWY WĄTEK
             int number = random.nextInt(controller.getMyThreadsRunnableList().size());
-            MainFrame.getInstance().getTextArea().append("OOOPS! Wątek nr: "+number+" padł w trakcje elekcji.\n");
-            maxPriority = controller.getMyThreadsRunnableList().get(number).getPriority();
-            controller.getMyThreadsRunnableList().remove(number);
+            while (number == this.getNumber() || !controller.getMyThreadsRunnableList().get(number).isAlive()) {
+                System.out.println("NUMBER: "+number);
+                number = random.nextInt(controller.getMyThreadsRunnableList().size());
+                System.out.println("NUMBER: "+number);
+            }
+            controller.killThreadWithNumber(number);
+            MainFrame.getInstance().getTextArea().append("OOOPS! Wątek nr: " + number + " padł w trakcje elekcji.\n");
             
-            if (maxPriorityThread.getPriority() == maxPriority) {
-                MainFrame.getInstance().getTextArea()
-                .append(">>> Nowy koordynator padł w trakcie algorytmu elekcji. Rozpoczynam jeszcze raz.\n");
+            
+            if (maxPriorityThread.getNumber() == number) {
+                MainFrame.getInstance().getTextArea().append(">>> Nowy koordynator padł w trakcie algorytmu elekcji. Rozpoczynam jeszcze raz.\n");
                 controller.setElectionStarted(false);
                 startElection();
-            }
-            else {
-                MainFrame.getInstance().getTextArea()
-                .append("> Nowym koordynatorem został wątek nr: " + maxPriorityThread.getNumber() + " z priorytetem: " + maxPriorityThread.getPriority()+"\n");
+            } else {
+                MainFrame
+                        .getInstance()
+                        .getTextArea()
+                        .append("> Nowym koordynatorem został wątek nr: " + maxPriorityThread.getNumber() + " z priorytetem: "
+                                + maxPriorityThread.getPriority() + "\n");
             }
             
-            System.out.println("TU");
             maxPriorityThread.setCoordinator(true);
             maxPriorityThread.setAlive(true);
+            System.out.println("KOORDYNATOR NUMER: "+maxPriorityThread.getNumber());
             controller.setCoordinator(maxPriorityThread);
-            //controller.setVerbose(true);
             controller.setElectionStarted(false);
         }
     }
@@ -112,19 +114,11 @@ public class MyThread implements Runnable {
     public String getMessageFromCoordinator() {
         if (isAlive) {
             if (isCoordinator()) {
-                return "Wiadomość zwrotna od koordynatora.\n";
+                return "Wiadomość zwrotna od koordynatora.";
             } else
                 return "Nie jestem koordynatorem, nie wiem czemu mnie ktoś odpytuje\n";
         } else
             return null;
-    }
-
-    public int getNumber() {
-        return number;
-    }
-
-    public void setNumber(int number) {
-        this.number = number;
     }
 
     public void kill() {
@@ -138,6 +132,18 @@ public class MyThread implements Runnable {
 
     public void setAlive(boolean isAlive) {
         this.isAlive = isAlive;
+    }
+
+    public int getNumber() {
+        return numberr;
+    }
+
+    public int getDELAY() {
+        return DELAY;
+    }
+
+    public void setDELAY(int dELAY) {
+        DELAY = dELAY;
     }
 
 }

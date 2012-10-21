@@ -23,14 +23,14 @@ public class Controller {
 
     }
 
-    public void startThreads(int numberOfThreads, int priorityMax, int coordinatorNumber) {
+    public void startThreads(int numberOfThreads, int priorityMax, int coordinatorNumber, int delay) {
 
         myThreadsRunnableList = new ArrayList<MyThread>(numberOfThreads);
         threadsList = new ArrayList<Thread>(numberOfThreads);
 
         Random r = new Random();
         for (int i = 0; i < numberOfThreads; i++) {
-            myThreadsRunnableList.add(new MyThread(r.nextInt(priorityMax), i));
+            myThreadsRunnableList.add(new MyThread(r.nextInt(priorityMax), i, delay));
         }
 
         getMyThreadByNumber(coordinatorNumber).setCoordinator(true);
@@ -44,14 +44,46 @@ public class Controller {
     }
 
     public void coordinatorIsDead() {
+        System.out.println("\t\tRUNNABLE LIST SIZE: "+myThreadsRunnableList.size());
         MainFrame.getInstance().getTextArea().append("KOORDYNATOR JEST MARTWY!\n");
-        coordinator.kill();
         verbose = false;
-        threadsList.remove(coordinator);
-        myThreadsRunnableList.remove(coordinator);
-        System.out.println("WIELKOSC LISTY WATKOW: " + threadsList.size() + " : " + myThreadsRunnableList.size());
+        threadsList.get(coordinator.getNumber()).interrupt();
+        coordinator.kill();
+        removeThreadWithNumber(coordinator.getNumber());
+        System.out.println("\t\tRUNNABLE LIST SIZE: "+myThreadsRunnableList.size());
     }
 
+    public void killThreadWithNumber(int number) {
+        System.out.println("\tRUNNABLE LIST SIZE: "+myThreadsRunnableList.size());
+        threadsList.get(number).interrupt();
+        myThreadsRunnableList.get(number).kill();
+        removeThreadWithNumber(number);
+        System.out.println("\tRUNNABLE LIST SIZE: "+myThreadsRunnableList.size());
+    }
+
+    public MyThread getMaxPriorityThread() {
+        MyThread maxPriorityThread = null;
+
+        for (MyThread mt : getMyThreadsRunnableList()) {
+            if (maxPriorityThread == null)
+                maxPriorityThread = mt;
+            if (mt.getPriority() > maxPriorityThread.getPriority())
+                maxPriorityThread = mt;
+        }
+        return maxPriorityThread;
+    }
+
+    private void removeThreadWithNumber(int number) {
+        MyThread toRemove = null;
+        for (MyThread r : myThreadsRunnableList) {
+            if (r.getNumber() == number) {
+                toRemove = r;
+                break;
+            }
+        }
+        myThreadsRunnableList.remove(toRemove);
+    }
+    
     public void stopThreads() {
         for (int i = 0; i < threadsList.size(); i++) {
             threadsList.get(i).interrupt();
@@ -67,7 +99,6 @@ public class Controller {
     }
 
     public MyThread getCoordinator() {
-        System.out.println("ZWRACAM KOORDYNATORA: " + coordinator.getNumber());
         return coordinator;
     }
 
@@ -80,7 +111,6 @@ public class Controller {
     }
 
     public void setCoordinator(MyThread coordinator) {
-        System.out.println("NOWY KOORDYNATOR: " + coordinator.getNumber());
         Controller.coordinator = coordinator;
     }
 
@@ -99,16 +129,4 @@ public class Controller {
     public void setMyThreadsRunnableList(List<MyThread> myThreadsRunnableList) {
         this.myThreadsRunnableList = myThreadsRunnableList;
     }
-
-    // public void pauseThreads() {
-    // for (int i = 0; i < threadsList.size(); i++) {
-    // System.out.println(threadsList);
-    // try {
-    // threadsList.get(i).wait();
-    // } catch (InterruptedException e) {
-    // // TODO Auto-generated catch block
-    // e.printStackTrace();
-    // }
-    // }
-    // }
 }
