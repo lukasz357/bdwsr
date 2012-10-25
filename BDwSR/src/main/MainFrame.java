@@ -5,6 +5,10 @@ import java.awt.GridLayout;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Calendar;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -21,6 +25,7 @@ public final class MainFrame extends JFrame {
 	public static final int			DEFAULT_HEIGHT		= 700;
 	public static final String		DEFAULT_TITLE		= "BDwSR - projekt (Łukasz Krok, Tobiasz Siemiński)";
 	public static final Border		DEFAULT_BORDER		= BorderFactory.createEtchedBorder(1);
+	public static final String		LOG_FILE_NAME	 	= "BDWSR_log-";
 
 	private final TextArea			textArea			= new TextArea(8, 40);
 
@@ -76,7 +81,7 @@ public final class MainFrame extends JFrame {
 
 		
 		JPanel leftSouthPanel = new JPanel();
-		leftSouthPanel.setLayout(new GridLayout(3, 1));
+		leftSouthPanel.setLayout(new GridLayout(4, 1));
 
 		// ///////////////// START BUTTON /////////////
 		JButton startButton = new JButton("START");
@@ -127,8 +132,31 @@ public final class MainFrame extends JFrame {
 		leftPanel.add(leftUpperPanel, BorderLayout.NORTH);
 		leftPanel.add(leftCenterPanel, BorderLayout.CENTER);
 		leftPanel.add(leftSouthPanel, BorderLayout.SOUTH);
+		
+		JButton btnZapiszDoPliku = new JButton("Zapisz do pliku");
+		leftSouthPanel.add(btnZapiszDoPliku);
+		btnZapiszDoPliku.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				PrintWriter out;
+				try {
+					out = new PrintWriter(new FileWriter(
+							MainFrame.LOG_FILE_NAME
+									+ Calendar.getInstance().getTime()
+											.toString().replace(" ", "_")
+											.replace(":", "-") + ".txt"));
+					out.print(textArea.getText());
+					out.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 
-		add(leftPanel, BorderLayout.WEST);
+				  System.out.printf("Testing String");
+			}
+		});
+
+		getContentPane().add(leftPanel, BorderLayout.WEST);
 
 		// ///////////////////// PRAWA STRONA /////////////////
 		JPanel rightPanel = new JPanel();
@@ -137,7 +165,7 @@ public final class MainFrame extends JFrame {
 		rightPanel.add(textArea, BorderLayout.SOUTH);
 		rightPanel.setBorder(DEFAULT_BORDER);
 
-		add(rightPanel, BorderLayout.CENTER);
+		getContentPane().add(rightPanel, BorderLayout.CENTER);
 	}
 
 	public void init() {
