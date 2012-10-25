@@ -20,16 +20,17 @@ import javax.swing.border.Border;
 
 public final class MainFrame extends JFrame {
 
-	private static final long		serialVersionUID	= 958317504694425777L;
-	public static final int			DEFAULT_WIDTH		= 1200;
-	public static final int			DEFAULT_HEIGHT		= 700;
-	public static final String		DEFAULT_TITLE		= "BDwSR - projekt (Łukasz Krok, Tobiasz Siemiński)";
-	public static final Border		DEFAULT_BORDER		= BorderFactory.createEtchedBorder(1);
-	public static final String		LOG_FILE_NAME	 	= "BDWSR_log-";
+	private static final long		serialVersionUID		= 958317504694425777L;
+	public static final int			DEFAULT_WIDTH			= 1200;
+	public static final int			DEFAULT_HEIGHT			= 700;
+	public static final int			DELAY_TIME_MULTIPLIER	= 16; // Tak obliczyliśmy podczas używania
+	public static final String		DEFAULT_TITLE			= "BDwSR - projekt (Łukasz Krok, Tobiasz Siemiński)";
+	public static final Border		DEFAULT_BORDER			= BorderFactory.createEtchedBorder(1);
+	public static final String		LOG_FILE_NAME	 		= "BDWSR_log-";
 
-	private final TextArea			textArea			= new TextArea(8, 40);
+	private final TextArea			textArea				= new TextArea(8, 40);
 
-	private final static MainFrame	instance			= new MainFrame();
+	private final static MainFrame	instance				= new MainFrame();
 	private Controller controller;
 	
 	public static MainFrame getInstance() {
@@ -73,9 +74,9 @@ public final class MainFrame extends JFrame {
 		final JTextField coordinatorNumber = new JTextField("1");
 		leftCenterPanel.add(coordinatorNumber);
 		
-		leftCenterPanel.add(new JLabel("Czas zwłoki w ms:"));
-		final JTextField delayTime = new JTextField("3000");
-		leftCenterPanel.add(delayTime);
+//		leftCenterPanel.add(new JLabel("Czas zwłoki w ms:"));
+//		final JTextField delayTime = new JTextField("3000");
+//		leftCenterPanel.add(delayTime);
 		
 		leftCenterPanel.setBorder(DEFAULT_BORDER);
 
@@ -97,7 +98,7 @@ public final class MainFrame extends JFrame {
 				int numberOfThreads = Integer.valueOf(threadsNumber.getText());
 				int maxPriority = Integer.valueOf(priorityMax.getText());
 				
-				controller.startThreads(numberOfThreads, maxPriority, Integer.valueOf(coordinatorNumber.getText()), Integer.valueOf(delayTime.getText()));
+				controller.startThreads(numberOfThreads, maxPriority, Integer.valueOf(coordinatorNumber.getText()), Integer.valueOf(threadsNumber.getText())*MainFrame.DELAY_TIME_MULTIPLIER);
 			}
 		});
 		leftSouthPanel.add(startButton);
@@ -133,6 +134,7 @@ public final class MainFrame extends JFrame {
 		leftPanel.add(leftCenterPanel, BorderLayout.CENTER);
 		leftPanel.add(leftSouthPanel, BorderLayout.SOUTH);
 		
+		// ///////////////// SAVE BUTTON /////////////
 		JButton btnZapiszDoPliku = new JButton("Zapisz do pliku");
 		leftSouthPanel.add(btnZapiszDoPliku);
 		btnZapiszDoPliku.addActionListener(new ActionListener() {
