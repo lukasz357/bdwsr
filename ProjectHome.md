@@ -1,0 +1,1 @@
+Implementacja algorytmu tyrana dla przedmiotu Bazy Danych w Systemach Rozproszonych
